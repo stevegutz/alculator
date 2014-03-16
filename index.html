@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alculator</title>
+
+<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no">
+
+<style type="text/css">
+body {
+    font-family: Helvetica, Arial, sans-serif;  
+    text-align: center;
+    vertical-align: middle;
+    font-size: 32px;
+    background-color: #ABCDEF;
+}
+
+header {
+  margin: -20px 0 -40px 0;
+}
+
+.num-input {
+  border: 1px solid #ABCDEF; 
+  font-size: 14px;
+  padding: 7px;
+  background: rgba(255,255,255,0.5);
+  margin: 5px 0 0 0;
+  width: 72px;
+  text-align: right;
+  border-radius: 4px;
+}
+
+.unit-selector {
+  -webkit-appearance: none;
+  border: 1px solid #ABCDEF; 
+  font-size: 12px;
+  height: 30px;
+  width: 60px;
+  background: rgba(255,255,255,0.33);
+  border-radius: 4px;
+  padding: 7px;
+
+  -moz-appearance: none;
+  text-indent: 0.01px;
+  text-overflow: '';
+}
+
+#alculate-btn { 
+  background-color: #03C03C;
+  font-size: 18px;
+  border: 1px solid transparent;
+  height: 36px;
+  width: 100px;
+  text-align: center;
+  border-radius: 4px;
+  margin: 10px 0 15px 0;
+}
+
+#results {
+  font-size: 24px;
+}
+
+</style>
+</head>
+
+<body>
+<header>
+    <h2>Alculator</h2>
+</header>
+
+<!-- <form> -->
+<input type="number" class="num-input" id="volume" placeholder="volume">
+<select class="unit-selector" id="volume-units">
+  <option value="oz">oz</option>
+  <option value="ml">ml</option>
+  <option value="l">L</option>
+</select>
+<br>
+<input type="number" class="g num-input" id="potency" placeholder="potency"> 
+<select class="unit-selector" id="potency-units">
+  <option value="abv">% ABV</option>
+  <option value="proof">Proof</option>
+</select>
+<br>
+<input type="number" class="num-input" id="price" placeholder="price">
+<select class="unit-selector" id="price-units">
+  <option value="dollar">$</option>
+  <option value="pound">&pound;</option>
+  <option value="euro">&euro;</option>
+  <option value="yen">&yen;</option>
+  <!-- <option value="cent">&cent;</option> -->
+  <option value="snow">&#9731;</option>
+</select>
+<!-- </form> -->
+<br>
+<button type="button" class="num-input" id="alculate-btn" onclick="alculate()">
+Alculate!
+</button>
+
+<div id="results" style="display:none">
+  <div id="result-per-div">
+    <span id="result-per-value"></span>
+    <span id="result-units"> cc ethanol per </span>
+    <span id="result-currency"></span> 
+  </div>
+  <span id="result-total"></span> cc total
+</div>
+
+<script type="text/javascript">
+  function alculate() {
+    var volume = document.getElementById("volume").value;
+    var potency = document.getElementById("potency").value;
+    var potencyUnits = document.getElementById("potency-units").value;
+    var price = document.getElementById("price").value;
+
+    var errors = validate(volume, potency, potencyUnits, price);
+    if (errors !== "") {
+      document.getElementById("results").style.display = "display:none";
+      alert(errors);
+      return;
+    }
+
+    var volumeUnits = document.getElementById("volume-units").value;
+    var volumeCCs = volumeInCCs(volume, volumeUnits);
+
+
+    var decimalPotency = (potencyUnits === "abv" ? potency : potency / 2.0) / 100;
+
+    var priceSelect = document.getElementById("price-units");
+    var priceUnits = priceSelect.options[priceSelect.selectedIndex].text;
+
+    var totalCCs = volumeCCs * decimalPotency;
+
+    document.getElementById("result-per-value").innerHTML = price == 0 ?
+     "&infin;" : (volumeCCs * decimalPotency / price).toFixed(2);
+    document.getElementById("result-currency").innerHTML = priceUnits;
+    document.getElementById("result-total").innerHTML = totalCCs.toFixed(2);
+
+    document.getElementById("results").style.display = "";
+  }
+
+  function validate(volume, potency, potencyUnits, price) {
+    var errors = [];
+    if (volume === "") {
+      errors.push("Volume required");
+    } else if (volume < 0) {
+      errors.push("Volume must be nonnegative");
+    }
+
+    if (potency === "") {
+      errors.push("Potency required");
+    } else if (potencyUnits === 'abv' && (potency < 0 || potency > 100)) {
+      errors.push("% ABV must be in 0-100");
+    } else if (potency < 0 || potency > 200) {
+      errors.push("Proof must be in 0-200");
+    }
+
+    if (price < 0) {
+      errors.push("Price must be nonnegative");
+    }
+    
+    return errors.join("\n"); 
+  }
+
+  function volumeInCCs(volume, volumeUnits) {
+    switch(volumeUnits) {
+      case "oz":
+        return volume * 29.574
+      case "l":
+        return volume * 1000;
+      case "ml":
+        return volume;
+      default:
+        // error
+        return NaN;
+    }
+  }
+</script>
+</body>
+</html>
