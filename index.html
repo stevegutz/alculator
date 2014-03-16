@@ -45,6 +45,10 @@ header {
   text-overflow: '';
 }
 
+.result-num {
+  font-weight: bold;
+}
+
 #alculate-btn { 
   background-color: #03C03C;
   font-size: 18px;
@@ -99,11 +103,11 @@ Alculate!
 
 <div id="results" style="display:none">
   <div id="result-per-div">
-    <span id="result-per-value"></span>
+    <span class="result-num" id="result-per-value"></span>
     <span id="result-units"> cc ethanol per </span>
     <span id="result-currency"></span> 
   </div>
-  <span id="result-total"></span> cc total
+  <span class="result-num" id="result-total"></span> cc total
 </div>
 
 <script type="text/javascript">
