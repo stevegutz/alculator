@@ -76,20 +76,20 @@ header {
 </header>
 
 <!-- <form> -->
-<input type="number" class="num-input" id="volume" placeholder="volume">
+<input class="num-input" id="volume" placeholder="volume">
 <select class="unit-selector" id="volume-units">
   <option value="oz">oz</option>
   <option value="ml">ml</option>
   <option value="l">L</option>
 </select>
 <br>
-<input type="number" class="g num-input" id="potency" placeholder="potency"> 
+<input class="num-input" id="potency" placeholder="potency">
 <select class="unit-selector" id="potency-units">
   <option value="abv">% ABV</option>
   <option value="proof">Proof</option>
 </select>
 <br>
-<input type="number" class="num-input" id="price" placeholder="price">
+<input class="num-input" id="price" placeholder="price">
 <select class="unit-selector" id="price-units">
   <option value="dollar">$</option>
   <option value="pound">&pound;</option>
@@ -115,12 +115,13 @@ Alculate!
 
 <script type="text/javascript">
   function alculate() {
-    var volume = document.getElementById("volume").value;
-    var potency = document.getElementById("potency").value;
+    var volume = validateAndParseVolume(document.getElementById("volume").value);
     var potencyUnits = document.getElementById("potency-units").value;
-    var price = document.getElementById("price").value;
+    var potency = validateAndParsePotency(
+      document.getElementById("potency").value, potencyUnits);
+    var price = validateAndParsePrice(document.getElementById("price").value);
 
-    var errors = validate(volume, potency, potencyUnits, price);
+    var errors = getErrors(volume, potency, price);
     if (errors !== "") {
       document.getElementById("results").style.display = "display:none";
       alert(errors);
@@ -128,45 +129,94 @@ Alculate!
     }
 
     var volumeUnits = document.getElementById("volume-units").value;
-    var volumeCCs = volumeInCCs(volume, volumeUnits);
+    var volumeCCs = volumeInCCs(volume.val, volumeUnits);
 
-
-    var decimalPotency = (potencyUnits === "abv" ? potency : potency / 2.0) / 100;
+    var decimalPotency = (potencyUnits === "abv" ? potency.val : potency.val / 2.0) / 100;
 
     var priceSelect = document.getElementById("price-units");
     var priceUnits = priceSelect.options[priceSelect.selectedIndex].text;
 
     var totalCCs = volumeCCs * decimalPotency;
 
-    document.getElementById("result-per-value").innerHTML = price == 0 ?
-     "&infin;" : (volumeCCs * decimalPotency / price).toFixed(2);
+    document.getElementById("result-per-value").innerHTML = price.val == 0 ?
+     "&infin;" : (volumeCCs * decimalPotency / price.val).toFixed(2);
     document.getElementById("result-currency").innerHTML = priceUnits;
     document.getElementById("result-total").innerHTML = totalCCs.toFixed(2);
 
     document.getElementById("results").style.display = "";
   }
 
-  function validate(volume, potency, potencyUnits, price) {
+  function getErrors() {
     var errors = [];
-    if (volume === "") {
-      errors.push("Volume required");
-    } else if (volume < 0) {
-      errors.push("Volume must be nonnegative");
+    for (var i = 0; i < arguments.length; i++) {
+      var err = arguments[i].err;
+      if(err !== "") {
+        errors.push(err);
+      }
+    }
+    return errors.join("\n");
+  }
+
+  function validateAndParseVolume(volumeString) {
+    if (volumeString === "") {
+      return errorResult("Volume required");
     }
 
-    if (potency === "") {
-      errors.push("Potency required");
-    } else if (potencyUnits === 'abv' && (potency < 0 || potency > 100)) {
-      errors.push("% ABV must be in 0-100");
+    var product = 1;
+    var parts = volumeString.split("*");
+    for (var i = 0; i < parts.length; i++) {
+      factor =  parseFloat(parts[i]);
+      if (isNaN(factor)) {
+        return errorResult("Unparsable volume");
+      }
+      product *= factor;
+    }
+
+    if (product < 0) {
+        return errorResult("Volume must be nonnegative");
+    }
+    return validResult(product);
+  }
+
+  function validateAndParsePotency(potencyString, potencyUnits) {
+    if (potencyString === "") {
+      return errorResult("Potency required")
+    }
+
+    var potency = parseFloat(potencyString);
+
+    if (isNaN(potency)) {
+      return errorResult("Unparsable potency");
+    } else if (potencyUnits === "abv" && (potency < 0 || potency > 100)) {
+      return errorResult("% ABV must be in 0-100");
     } else if (potency < 0 || potency > 200) {
-      errors.push("Proof must be in 0-200");
+      return errorResult("Proof must be in 0-200");
     }
 
-    if (price < 0) {
-      errors.push("Price must be nonnegative");
+    return validResult(potency);
+  }
+
+  function validateAndParsePrice(priceString) {
+    if (priceString === "") {
+      return validResult(0);
     }
-    
-    return errors.join("\n"); 
+
+    var price = parseFloat(priceString);
+    if (isNaN(price)) {
+      errorResult("Unparsable price");
+    } else if (price < 0) {
+      errorResult("Price must be nonnegative");
+    }
+
+    return validResult(price);
+  }
+
+  function validResult(value) {
+    return {val: value, err: ""};
+  }
+
+  function errorResult(errorString) {
+    return {val: 0, err: errorString};
   }
 
   function volumeInCCs(volume, volumeUnits) {
