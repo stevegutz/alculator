@@ -203,9 +203,9 @@ Alculate!
 
     var price = parseFloat(priceString);
     if (isNaN(price)) {
-      errorResult("Unparsable price");
+      return errorResult("Unparsable price");
     } else if (price < 0) {
-      errorResult("Price must be nonnegative");
+      return errorResult("Price must be nonnegative");
     }
 
     return validResult(price);
