@@ -162,20 +162,13 @@ Alculate!
       return errorResult("Volume required");
     }
 
-    var product = 1;
-    var parts = volumeString.split("*");
-    for (var i = 0; i < parts.length; i++) {
-      factor =  parseFloat(parts[i]);
-      if (isNaN(factor)) {
-        return errorResult("Unparsable volume");
-      }
-      product *= factor;
-    }
-
-    if (product < 0) {
+    var volume = parseMultiplicationString(volumeString);
+    if (isNaN(volume)) {
+      return errorResult("Unparsable volume");
+    } else if (volume < 0) {
         return errorResult("Volume must be nonnegative");
     }
-    return validResult(product);
+    return validResult(volume);
   }
 
   function validateAndParsePotency(potencyString, potencyUnits) {
@@ -201,7 +194,7 @@ Alculate!
       return validResult(0);
     }
 
-    var price = parseFloat(priceString);
+    var price = parseMultiplicationString(priceString);
     if (isNaN(price)) {
       return errorResult("Unparsable price");
     } else if (price < 0) {
@@ -209,6 +202,19 @@ Alculate!
     }
 
     return validResult(price);
+  }
+
+  function parseMultiplicationString(multString) {
+    var product = 1;
+    var parts = multString.split("*");
+    for (var i = 0; i < parts.length; i++) {
+      factor = parseFloat(parts[i]);
+      if (isNaN(factor)) {
+        return NaN;
+      }
+      product *= factor;
+    }
+    return product;
   }
 
   function validResult(value) {
