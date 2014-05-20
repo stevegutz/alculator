@@ -1,7 +1,10 @@
 alculator
 =========
-Not much to say here.
+http://stevegutz.github.io/alculator
 
-My front end skills are pretty bad, so please offer any criticism and/or pull requests you can.
+Non-totally-obvious functionality:
+ - Multiplication is supported in the volume and price fields
+ - This is designed to be installed as a mobile app.
+  
 
-Also, the page's current appearance in Firefox is not ideal.
+Go get 'em, kiddo.
